@@ -1,7 +1,7 @@
 project_name: tf-controller
 
 release:
-  prerelease: "true"
+  prerelease: 'true'
   extra_files:
     - glob: config/release/*.yaml
 
@@ -16,10 +16,16 @@ builds:
     env:
       - CGO_ENABLED=0
     ldflags:
-      -  -X main.BuildSHA={{.ShortCommit}} -X main.BuildVersion={{.Tag}}
+      - -X main.BuildSHA={{.ShortCommit}} -X main.BuildVersion={{.Tag}}
     goos:
       - darwin
       - linux
+      - windows
+    ignore:
+      - goos: windows
+        goarch: arm64
+      - goos: windows
+        goarch: arm
     goarch:
       - amd64
       - arm64
@@ -32,18 +38,18 @@ archives:
   - id: tfctl
     builds:
       - tfctl
-    name_template: "tfctl_{{ title .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    name_template: 'tfctl_{{ title .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
     format: tar.gz
 
 source:
   enabled: true
-  name_template: "{{ .ProjectName }}_{{ .Version }}_source_code"
+  name_template: '{{ .ProjectName }}_{{ .Version }}_source_code'
 
 sboms:
   - id: source
     artifacts: source
     documents:
-      - "{{ .ProjectName }}_{{ .Version }}_sbom.spdx.json"
+      - '{{ .ProjectName }}_{{ .Version }}_sbom.spdx.json'
 
 # signs the checksum file
 # all files (including the sboms) are included in the checksum
@@ -52,24 +58,24 @@ signs:
   - cmd: cosign
     env:
       - COSIGN_EXPERIMENTAL=1
-    certificate: "${artifact}.pem"
+    certificate: '${artifact}.pem'
     args:
       - sign-blob
       - --yes
-      - "--output-certificate=${certificate}"
-      - "--output-signature=${signature}"
-      - "${artifact}"
+      - '--output-certificate=${certificate}'
+      - '--output-signature=${signature}'
+      - '${artifact}'
     artifacts: checksum
     output: true
 
 brews:
   - name: tfctl
     ids:
-    - tfctl
+      - tfctl
     tap:
       owner: weaveworks
       name: homebrew-tap
-      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+      token: '{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}'
     commit_author:
       name: weaveworksbot
       email: team+gitbot@weave.works
